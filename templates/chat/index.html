@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}PTChat{% endblock title %}
+{% block content %}
+{% load static %}
+<div class="container">
+    <section>
+        <div class="container">
+            <div>
+                <h2>Creat Room</h2>
+                <p>Start Chatting with Others Or Join Room</p>
+            </div>
+            {% comment %} <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Launch demo modal
+            </button> {% endcomment %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+             data-bs-target="#exampleModal" data-bs-whatever="create">
+                Create Room
+            </button>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal"
+             data-bs-target="#exampleModal" data-bs-whatever="join">
+                Join Room
+            </button>
+        </div>
+    </section>
+    <div class="row">
+        <div class="col-4 text-center">
+            <h1>Rooms</h1>
+            <div class="container overflow-auto p-3" style="max-height:90%;">
+                {% for room in rooms %}
+                <div class="row card roomName my-3 roomItem" onClick="reloadMsg({{room.id}})" roomID="{{ room.id }}">
+                    <div class="card-header p-3">
+                        <button class="btn btn-primary" data-ID="{{ room.id }}"
+                                data-bs-toggle="modal" data-bs-target="#exampleModal1"
+                            >Share Room
+                        </button>
+                    </div>
+                    <div class="card-body p-3">
+                        <h3>{{ room.name }}</h3>
+                    </div>
+                    <div class="card-footer p-2">
+                        <h5>Creator: {{ room.creator__username }}</h5>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="col-8 text-center">
+            <h1>Message</h1>
+            <div class="container messages overflow-auto p-3" style="max-height: 24rem;" id="scroll-container" >
+                {% for message in messages %}
+                <div class="row card p-4 m-4">
+                    <div class="card-header">
+                        <h3>{{ message.user__username }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ message.value }}</p>
+                    </div>
+                    <div class="card-footer"><span>{{ message.date }}</span></div>
+                </div>
+                {% endfor %}
+                {% comment %} {% if rooms %}     {% endcomment %}
+            </div>
+            {% if rooms %}
+                {% with rooms.all|first as room %}
+                    <div class="container chat">
+                        <form id="formMessage" action="{% url "chatapp:sendmsg" pk=room.id %}" method="POST" roomID="{{room.id}}" >
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea class="form-control" id="message" name="message" rows="3"></textarea>
+                            </div>
+                        </form>
+                        <button type="button" class="btn btn-primary mt-2 btnSendMsg">Submit</button>
+                    </div>
+                {% endwith %}
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% include "partials/modal_chatapp.html" %}
+<script>
+    window.addEventListener("load", function() {
+            var container = document.getElementById('scroll-container');
+            container.scrollTop = container.scrollHeight - container.clientHeight;
+        });
+    function addInvalidDiv(message) {
+        const invalidDiv = document.createElement('div')
+        invalidDiv.className = 'invalid-feedback'
+        invalidDiv.innerHTML = message
+        return invalidDiv
+    }
+    const exampleModal = document.getElementById('exampleModal')
+    let typeAction
+    if (exampleModal) {
+        exampleModal.addEventListener('show.bs.modal', function(event){
+            // Button that triggered the modal
+            const button = event.relatedTarget
+            // Extract info from data-bs-* attributes
+            typeAction = button.getAttribute('data-bs-whatever')
+            if (typeAction === 'join') {
+                $('label[for="room"]').text('Room ID')
+                $('button[type="submit"]').text('Join')
+            }
+        })
+    }
+    const exampleModal1 = document.getElementById('exampleModal1')
+    if (exampleModal1) {
+        exampleModal1.addEventListener('show.bs.modal', function(event){
+            // Button that triggered the modal
+            const button = event.relatedTarget
+            // Extract info from data-bs-* attributes
+            $('.btn-generate').attr('dataid', button.getAttribute('data-id'))
+            
+        })
+    }
+    $('.btn-generate').on('click', function(e){
+        btn = $(this)
+        $.ajax({
+            url: 'generate/'+btn.attr('dataid')+'/',
+            type: 'GET',
+            success: function(response){
+                if (response.status === 'success') {
+                    $('.invalid-feedback').remove()
+                    $('input#codeRoom').removeClass('is-invalid')
+                    $('input#codeRoom').addClass('is-valid')
+                    $('input#codeRoom').val(response.code)
+                }
+                if (response.status === 'error') {
+                    $('.invalid-feedback').remove()
+                    $('input#codeRoom').removeClass('is-valid')
+                    $('input#codeRoom').addClass('is-invalid')
+                    $('input#codeRoom').after(addInvalidDiv(response.message))
+                }
+            },
+            error: function(response){
+                console.log(response)
+            }
+        })
+    })
+    $('.modal-footer>button[type="submit"]').on('click', function(event){
+        const Data = $('input#room').val()
+        if (!Data) return
+        const formData = new FormData()
+        formData.append('csrfmiddlewaretoken', $('input[name="csrfmiddlewaretoken"]').val())
+        formData.append('type', typeAction)
+        formData.append('value', Data)
+        $.ajax({
+            url: 'create/',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response){
+                if (response.status === 'success') {
+                    window.location.reload()
+                }
+                if (response.status === 'error') {
+                    $('input#room').addClass('is-invalid')
+                    $('input#room').after(addInvalidDiv(response.message))
+                }
+            },
+            error: function(response){
+                console.log(response)
+            }
+        })
+    })
+</script>
+<script src={% static "js/chatapp/index.js" %}></script>
+{% endblock %}

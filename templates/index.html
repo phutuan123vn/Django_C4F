@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock title %}
+{% block content %}
+{% load static %}
+<link rel="stylesheet" href="{% static '/css/account/style.css' %}">
+<div class="main">
+    <div class="content">
+        <div class="container-form">
+            <div id="sign-up-in-container">
+                <div class="form-container sign-up">
+                    <form action="/account/" class="form-signUp" method="POST">
+                        {% csrf_token %}
+                        <h1>Create Account</h1>
+                        <div class="label-input">
+                            <label for="username">Username:</label>
+                            <input class="input-signUp inputValue" type="text" name="username" placeholder="Username">
+                        </div>
+                        <div class="label-input">
+                            <label for="password">Password:</label>
+                            <input class="input-signUp inputValue" type="password" name="password" placeholder="Password">
+                        </div>
+                        <div class="label-input">
+                            <label for="conf-pass">Confirm Password:</label>
+                            <input class="input-signUp inputValue" type="password" name="conf-pass" placeholder="Password">
+                        </div>
+                        <button class="input-signUp" type="submit">Sign Up</button>
+                    </form>
+                </div>
+                <div class="form-container sign-in">
+                    <form action="/account/login/" class="form-signIn" method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}" />
+                        <h1>Sign In</h1>
+                        <div class="label-input">
+                            <label for="username">Username:</label>
+                            <input class="input-signIn inputValue" name="username" type="text" id="username" placeholder="Username">
+                        </div>
+                        <div class="label-input">
+                            <label for="password">Password:</label>
+                            <input class="input-signIn inputValue" name="password" type="password" id="password" placeholder="Password">
+                        </div>
+                        <button class="input-signIn" type="submit">Sign In</button>
+                        <a href="#">Forget Your Password?</a>
+                    </form>
+                </div>
+            </div>
+            <div class="toggle-container">
+                <div class="toggle-sign-up">
+                    <h1>Hello Friend</h1>
+                    <p>Don't have an account then go here to make a new one for yourself.</p>
+                    <button id="toggle-SignUp">Sign-Up</button>
+                </div>
+                <div class="toggle-sign-in">
+                    <h1>Welcome back</h1>
+                    <p>If you have an account already then let's skip it and Sign-In.</p>
+                    <button id="toggle-SignIn">Sign-In</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src={% static "js/account/index.js" %}></script>
+{% endblock content %}

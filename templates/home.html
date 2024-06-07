@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock title %}
+{% block content %}
+{% load static %}
+{% comment %} <link rel="stylesheet" href="{% static '/css/home/style.css' %}"> {% endcomment %}
+<div class="container">Hello {{ request.user.username }}
+    <div>
+        <a href="{% url "account_logout" %}" class="btn btn-danger">Logout</a>
+    </div>
+</div>
+
+{% endblock %}
