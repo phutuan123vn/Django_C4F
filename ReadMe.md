@@ -10,7 +10,7 @@
     - User must have an account for accessing more features
     - Can react to other post and give them your opinion
 - Real - time Chat app
-    - Share your invite `Code` to have other join your `Room` having a chat with them
+    - Share your invite `code` to allow others to join your `Room` and chat with them.
     - Real - time chat by utilizing `Django channels` and `Redis`
 ---
 # Installation
