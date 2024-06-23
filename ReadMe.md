@@ -1,8 +1,9 @@
 # Overview
-- Using Django Framework
+- This is an Backend only version
+- Using Django Rest Framework
 - Database: `PostgreSQL`
-- Using Django Template
-- Using Jquery, Ajax and Bootstrap
+- Implement JWT Cookie
+- Modified Middleware for `CSRF Cookie` and `JWT Cookie`
 ---
 
 - Basic Login and Register
@@ -22,9 +23,11 @@
 
 ---
 # More
-- Using `factory_boy` for generate `Fake` data
+- Using `factory_boy` for generate `Fake` data and seed to `Database`
 - Using `autoslug` for auto fill `slug` field in `Blog` model
-- Add command to run factory script by using `factory` command in *CLI* instead of `Django Shell`
+- Using `rest_framework_simpleJWT` for Authenticate in Server
+- Using `corsheaders` for applying Cross-Origin Resource Sharing
+- Add `Django Command` to run factory script (seeding to Databse) by using `factory` command in *CLI* instead of `Django Shell`
 ```
 python manage.py factory [your file python script]
 EX: python manage.py factory "./blog/factoryScripts/blogCreate.py"
