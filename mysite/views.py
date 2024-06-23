@@ -1,3 +1,4 @@
+from pprint import pprint
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
@@ -10,31 +11,39 @@ from django.contrib.auth.models import User
 from rest_framework.mixins import RetrieveModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 from mysite import settings
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate
 from django.middleware import csrf
 from rest_framework import status
+from rest_framework.permissions import AllowAny
 
 def get_tokens_for_user(user):
     refresh = RefreshToken.for_user(user)
+    # print("token",refresh)
+    # pprint(vars(refresh))
     return {
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
 
 class LoginView(APIView):
+    authentication_classes = ([])
+    permission_classes = (AllowAny,)
+    serializer_class = LoginUserSerializer
+    
+    def get(self, request: Request, format=None):
+        return Response({"message":"Login page"})
+    
     def post(self, request: Request, format=None):
-        data = request.data
-        response = Response()
-        username = data.get('username', None)
-        password = data.get('password', None)
-        user = authenticate(username=username, password=password)
-
-        if user is not None:
-            if user.is_active:
+        serializer = self.serializer_class(data=request.data)
+        serializer.is_valid()
+        if serializer.is_valid():
+            user = serializer.validated_data
+            if user:
                 data = get_tokens_for_user(user)
+                response = Response()
                 response.set_cookie(
                     key = settings.SIMPLE_JWT['AUTH_COOKIE'],
-                    value = data["access"],
+                    value = data["refresh"],
                     expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
                     secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
                     httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
@@ -49,25 +58,28 @@ class LoginView(APIView):
             return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
 
 class CreateUsersView(generics.ListCreateAPIView):
+    authentication_classes = ([])
+    permission_classes = (AllowAny,)
     queryset = User.objects.all()
     serializer_class = RegisterUserSerializer
 
-class LoginUserView(APIView):
-    serializer_class = LoginUserSerializer
+# class LoginUserView(APIView):
+#     serializer_class = LoginUserSerializer
 
 
-    def post(self,request: Request):
-        serializer = LoginUserSerializer(data=request.data)
-        if serializer.is_valid():
-            return Response(UserSerializer(User.objects.get(username=serializer.validated_data['username'])).data)
-        return Response(serializer.errors)
+#     def post(self,request: Request):
+#         serializer = LoginUserSerializer(data=request.data)
+#         if serializer.is_valid():
+#             return Response(UserSerializer(User.objects.get(username=serializer.validated_data['username'])).data)
+#         return Response(serializer.errors)
 
-
-
-# @api_view(["GET","POST"])
+@api_view(["GET","POST"])
 def testAPI(request: Request):
-    # serializer = RegisterUserSerializer(data=request.data)
-    # if serializer.is_valid():
-    #     user = serializer.save()
-    #     return Response(UserSerializer(user).data)
-    return JsonResponse({"message":"Hello World"})
+    # access_token = ''
+    # if request._auth['token_type'] == 'refresh':
+    #     print(request.auth) 
+    #     refreshTokenClass = RefreshToken(str(request.auth))
+    #     access_token = str(refreshTokenClass.access_token)
+    return Response({"message":"Hello World",
+                        #  "access_token":access_token,
+                    })

@@ -38,7 +38,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    # 'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     "mysite",
     # "daphne",
@@ -50,15 +50,20 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     ### add the following apps
-    # "blog.apps.BlogConfig",
+    "blog.apps.BlogConfig",
     # "chatapp.apps.ChatappConfig",
 ]
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
+    ###################################################
+    # "middlewares.CheckTokenResponse.CheckTokenResponse",
+    "middlewares.CSRFCookie.CSRFCookieMiddleware",
+    ###################################################
+    # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
@@ -96,9 +101,11 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
 
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
     "UPDATE_LAST_LOGIN": False,
@@ -118,7 +125,7 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
 
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken","rest_framework_simplejwt.tokens.RefreshToken"),
     "TOKEN_TYPE_CLAIM": "token_type",
     "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
 
@@ -135,7 +142,7 @@ SIMPLE_JWT = {
     "SLIDING_TOKEN_OBTAIN_SERIALIZER": "rest_framework_simplejwt.serializers.TokenObtainSlidingSerializer",
     "SLIDING_TOKEN_REFRESH_SERIALIZER": "rest_framework_simplejwt.serializers.TokenRefreshSlidingSerializer",
 
-    'AUTH_COOKIE': 'access_token',  # Cookie name. Enables cookies if value is set.
+    'AUTH_COOKIE': 'refresh_token',  # Cookie name. Enables cookies if value is set.
     'AUTH_COOKIE_DOMAIN': None,     # A string like "example.com", or None for standard domain cookie.
     'AUTH_COOKIE_SECURE': False,    # Whether the auth cookies should be secure (https:// only).
     'AUTH_COOKIE_HTTP_ONLY' : True, # Http only cookie flag.It's not fetch by javascript.
@@ -223,5 +230,12 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'mysite.authentication.CustomAuthentication',
-    )
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
 }
+
+### CSRF Settings
+
+CSRF_COOKIE_HTTPONLY = True

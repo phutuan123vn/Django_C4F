@@ -25,7 +25,7 @@ class BlogComment(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.comment
+        return f"{self.user_id.username} - {self.blog_id.title} - {self.comment[:20]}"
     
 
 class BlogLike(models.Model):

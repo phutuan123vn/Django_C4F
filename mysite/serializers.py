@@ -2,6 +2,8 @@ from pprint import pprint
 from django.contrib.auth.models import User
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,15 +19,13 @@ class LoginUserSerializer(serializers.Serializer):
         username = data.get('username','')
         password = data.get('password','')
         if username and password:
-            user = User.objects.filter(username=username).first()
+            user = authenticate(username=username,password=password)
             if user:
-                if not user.check_password(password):
-                    raise serializers.ValidationError({"password":"Incorrect Password"})
+                return user
             else:
-                raise serializers.ValidationError({"username":"User not found"})
+                raise serializers.ValidationError({"message":"Invalid username or password"})
         else:
             raise serializers.ValidationError({"username":"This field is required"})
-        return data
 
 class RegisterUserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
