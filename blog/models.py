@@ -33,6 +33,9 @@ class BlogLike(models.Model):
     blog_id = models.ForeignKey(Blog, on_delete=models.CASCADE, related_name="blog_like")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('blog_id','user_id')
 
     def __str__(self):
         return self.user_id.username

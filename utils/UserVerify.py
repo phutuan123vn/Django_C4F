@@ -2,7 +2,7 @@ from functools import wraps
 from typing import Optional
 from django.http import HttpRequest, JsonResponse
 from django.shortcuts import redirect
-from utils import is_ajax
+
 
 
 def user_verify(func):

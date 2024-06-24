@@ -1,5 +1,3 @@
-from pprint import pprint
-from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
@@ -8,10 +6,8 @@ from rest_framework import generics
 from rest_framework.views import APIView
 from mysite.serializers import RegisterUserSerializer, UserSerializer, LoginUserSerializer
 from django.contrib.auth.models import User
-from rest_framework.mixins import RetrieveModelMixin
 from rest_framework_simplejwt.tokens import RefreshToken
 from mysite import settings
-from django.contrib.auth import authenticate
 from django.middleware import csrf
 from rest_framework import status
 from rest_framework.permissions import AllowAny
@@ -63,15 +59,17 @@ class CreateUsersView(generics.ListCreateAPIView):
     queryset = User.objects.all()
     serializer_class = RegisterUserSerializer
 
-# class LoginUserView(APIView):
-#     serializer_class = LoginUserSerializer
+class LoginUserView(APIView):
+    authentication_classes = ([])
+    permission_classes = [AllowAny]
+    serializer_class = LoginUserSerializer
 
-
-#     def post(self,request: Request):
-#         serializer = LoginUserSerializer(data=request.data)
-#         if serializer.is_valid():
-#             return Response(UserSerializer(User.objects.get(username=serializer.validated_data['username'])).data)
-#         return Response(serializer.errors)
+    def post(self,request: Request):
+        serializer = LoginUserSerializer(data=request.data)
+        if serializer.is_valid():
+            print(serializer.validated_data)
+            return Response(UserSerializer(User.objects.filter(username=serializer.validated_data).get()).data)
+        return Response(serializer.errors)
 
 @api_view(["GET","POST"])
 def testAPI(request: Request):

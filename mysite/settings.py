@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # 'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
     "mysite",
+    'django_extensions',
     # "daphne",
     ### add the following third party above
     "django.contrib.admin",
@@ -51,7 +52,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     ### add the following apps
     "blog.apps.BlogConfig",
-    # "chatapp.apps.ChatappConfig",
+    "chatapp.apps.ChatappConfig",
 ]
 
 MIDDLEWARE = [
@@ -60,14 +61,13 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
     ###################################################
-    # "middlewares.CheckTokenResponse.CheckTokenResponse",
+    "middlewares.CheckTokenResponse.CheckTokenResponse",
     "middlewares.CSRFCookie.CSRFCookieMiddleware",
     ###################################################
     # "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "middlewares.AdminCheckMiddleware",
     
 ]
 
@@ -101,7 +101,7 @@ CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
+CORS_EXPOSE_HEADERS = ['Content-Type']
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
@@ -125,7 +125,9 @@ SIMPLE_JWT = {
     "USER_ID_CLAIM": "user_id",
     "USER_AUTHENTICATION_RULE": "rest_framework_simplejwt.authentication.default_user_authentication_rule",
 
-    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken","rest_framework_simplejwt.tokens.RefreshToken"),
+    "AUTH_TOKEN_CLASSES": ("rest_framework_simplejwt.tokens.AccessToken",
+                           "rest_framework_simplejwt.tokens.RefreshToken",
+                           ),
     "TOKEN_TYPE_CLAIM": "token_type",
     "TOKEN_USER_CLASS": "rest_framework_simplejwt.models.TokenUser",
 

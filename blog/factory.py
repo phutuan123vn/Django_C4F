@@ -38,8 +38,9 @@ class BlogCommentFactory(factory.django.DjangoModelFactory):
     
     
 class BlogLikeFactory(factory.django.DjangoModelFactory):
+    blog_id = factory.SubFactory(BlogFactory)
+    user_id = factory.SubFactory(UserFactoryExist)
+    
     class Meta:
         model = BlogLike
         
-    blog_id = factory.SubFactory(BlogFactory)
-    user_id = factory.SubFactory(UserFactoryExist)

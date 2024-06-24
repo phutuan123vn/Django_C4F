@@ -25,7 +25,7 @@ class Message(models.Model):
     
 # use with related('model_name') to get the related model with 1 query ex: Room.objects.select_related('code').all()
 class Code(models.Model):
-    code = models.CharField(max_length=1000)
+    code = models.CharField(max_length=1000,unique=True)
     room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
     expires = models.DateTimeField(null=True)
     
