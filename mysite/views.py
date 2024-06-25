@@ -31,7 +31,7 @@ class LoginView(APIView):
     
     def post(self, request: Request, format=None):
         serializer = self.serializer_class(data=request.data)
-        serializer.is_valid()
+        # serializer.is_valid()
         if serializer.is_valid():
             user = serializer.validated_data
             if user:
@@ -46,7 +46,10 @@ class LoginView(APIView):
                     samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
                 )
                 csrf.get_token(request)
-                response.data = {"Success" : "Login successfully","data":data}
+                response.data = {"Success" : "Login successfully","data":data, "user": {
+                    'id': user.id,
+                    'username': user.username,
+                }}
                 return response
             else:
                 return Response({"No active" : "This account is not active!!"}, status=status.HTTP_404_NOT_FOUND)
@@ -70,6 +73,14 @@ class LoginUserView(APIView):
             print(serializer.validated_data)
             return Response(UserSerializer(User.objects.filter(username=serializer.validated_data).get()).data)
         return Response(serializer.errors)
+
+class LogoutUserView(APIView):
+    def post(self,request: Request):
+        response = Response()
+        response.delete_cookie('csrftoken')
+        response.delete_cookie(settings.SIMPLE_JWT['AUTH_COOKIE'])
+        response.data = {"message":"Logout successfully"}
+        return response
 
 @api_view(["GET","POST"])
 def testAPI(request: Request):

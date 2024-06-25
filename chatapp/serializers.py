@@ -1,5 +1,4 @@
 from os import read
-from numpy import source
 from rest_framework import serializers
 from chatapp import models
 

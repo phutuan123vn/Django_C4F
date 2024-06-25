@@ -30,7 +30,8 @@ urlpatterns = [
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
         path("test/", views.testAPI),
-        path("test/login/", views.LoginView.as_view(), name="test_login")
+        path("test/login/", views.LoginView.as_view(), name="test_login"),
+        path("test/logout/", views.LogoutUserView.as_view(), name="test_logout")
     ])),
     path("api/blog/", include(("blog.urls","blog"), namespace="blog")),
     path("api/chat/", include(("chatapp.urls","chatapp"), namespace="chatapp")),

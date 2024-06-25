@@ -7,8 +7,9 @@ from rest_framework.response import Response
 class CheckTokenResponse(MiddlewareMixin):
     
     def process_response(self, request: HttpRequest, response: HttpResponse):
+        pprint(vars(request))
         access_token = TokenCheck(request)
-        if access_token is not None:
+        if access_token is not None and 'logout' not in request.path:
             if isinstance(response, Response):
                 response.data['access_token'] = access_token
                 response._is_rendered = False

@@ -20,6 +20,6 @@ class CSRFCookieMiddleware(CsrfViewMiddleware):
         return super().process_view(request, callback, callback_args, callback_kwargs)
     
     def process_response(self, request: HttpRequest, response: HttpResponseBase) -> HttpResponseBase:
-        if request.COOKIES.get("csrftoken") is None:
+        if request.COOKIES.get("csrftoken") is None and 'logout' not in request.path:
             get_token(request)
         return super().process_response(request, response)
