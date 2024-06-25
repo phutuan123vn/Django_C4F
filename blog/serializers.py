@@ -18,13 +18,12 @@ class BlogSerializer(serializers.ModelSerializer):
         
         
 class BlogCommentSerializer(serializers.ModelSerializer):
-    username = serializers.ReadOnlyField(source="user_id.username")
+    username = serializers.CharField(source='user_id.username')
     # user = serializers.
     
     class Meta:
         model = models.BlogComment
-        fields = ['id','user_id','username','comment','created_at','blog_id']
-        read_only_fields = ['blog_id']
+        fields = ['id','username','comment','created_at']
         
     def create(self, validated_data):
         # print(validated_data)

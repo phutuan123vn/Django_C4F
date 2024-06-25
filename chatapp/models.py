@@ -15,7 +15,7 @@ class Room(models.Model):
     
 class Message(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True)
+    room = models.ForeignKey(Room, on_delete=models.SET_NULL, null=True, related_name='messages')
     date = models.DateTimeField(auto_now_add=True)
     value = models.TextField()
 

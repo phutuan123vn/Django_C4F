@@ -1,4 +1,5 @@
 from os import read
+from numpy import source
 from rest_framework import serializers
 from chatapp import models
 
@@ -29,5 +30,21 @@ class ChatRoomSerializer(serializers.ModelSerializer):
         
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name',instance.name)
+        instance.save()
+        return instance
+    
+class MessageSerializer(serializers.ModelSerializer):
+    # user__username = serializers.ReadOnlyField(source='user.username')
+    username = serializers.CharField(source='user__username')
+    class Meta:
+        model = models.Message
+        fields = ['value','date','id','username']
+        # read_only_fields = ['room']
+        
+    def create(self, validated_data):
+        return models.Message.objects.create(**validated_data)
+        
+    def update(self, instance, validated_data):
+        instance.value = validated_data.get('value',instance.value)
         instance.save()
         return instance

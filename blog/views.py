@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Prefetch
 from blog import models, serializers
+from django.db.models import Prefetch
 
 
 class BlogList(generics.ListCreateAPIView):
@@ -52,50 +53,46 @@ class BlogDetailComment(generics.ListAPIView):
     ##################################
     lookup_field = "slug"
     serializer_class = serializers.BlogCommentSerializer
-    queryset = models.Blog.objects.prefetch_related("blog_comment","blog_like__user_id")
+    queryset = models.Blog.objects.prefetch_related(Prefetch(
+                                                        "blog_comment",
+                                                        queryset=models.BlogComment.objects.order_by("created_at").only("comment","created_at","user_id__username")
+                                                    ),
+                                                    "blog_like__user_id")\
+                                #   .only("blog_comment__comment","blog_comment__created_at")
+                                #   .only("blog_comment__comment","blog_comment__created_at")
     
     def get(self, request: Request,slug:str) -> Response:
         response = Response()
         blog = self.get_object()
-        # blog = models.Blog.objects.prefetch_related("blog_comment").get(slug=slug)
-        # print(models.BlogComment.objects.prefetch_related(Prefetch('blog_comment',queryset=models.Blog.objects.filter(slug__iexact=slug).get())))
-        # comments = self.list(request, blog=blog)
-        comments = self.list2(blog.blog_comment.all())
+        comments = self.list(request,
+                             queryset=blog.blog_comment.all(),
+                             serializer=serializers.BlogCommentSerializer
+                             )
         if bool(request.query_params.get('page', None)):
             response.data = {"comments": comments.data}
             return response
+        like_user_queryset = blog.blog_like.all()
         blog = serializers.BlogSerializer(blog,context=self.get_serializer_context()).data
-        like_user = blog.blog_like.all()
-        # like = models.BlogLike.objects.filter(blog_id=blog['id'],user_id=request.user.id).exists()
         response.data = {
             "blog": blog,
             "comments":comments.data,
             "author": blog['user_id'] == request.user.id,
-            "liked": like_user.filter(user_id=request.user.id).exists(),
+            "liked": like_user_queryset.filter(user_id=request.user.id).exists(),
             }
         return response
     
     def list(self, request, *args, **kwargs):
-        # response.data['blog'] = serializers.BlogSerializer(blog).data
-        comments_queryset = models.BlogComment.objects.filter(blog_id_id=kwargs['blog'])\
-                                                      .order_by("-created_at") 
-        page = self.paginate_queryset(comments_queryset)
+        queryset = kwargs.pop('queryset')
+        serializer_class = kwargs.pop('serializer', self.serializer_class)
+        context = self.get_serializer_context()
+        page = self.paginate_queryset(queryset)
         if page is not None:
-            serializer = self.get_serializer(page, many=True)
+            serializer = serializer_class(page, many=True, context=context)
             return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(comments_queryset, many=True)
+        serializer = serializer_class(queryset, many=True, context=context)
         return serializer.data
-    
-
-    def list2(self, comments_queryset, *args, **kwargs):
-        page = self.paginate_queryset(comments_queryset.order_by("-created_at"))
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-
-        serializer = self.get_serializer(comments_queryset, many=True)
-        return serializer.data    
+       
     
     def post(self, request: Request, slug: str) -> Response:
         blog = self.get_object()

@@ -1,4 +1,5 @@
 import datetime
+from multiprocessing import context
 from pprint import pprint
 
 from django.contrib.auth.models import Group
@@ -9,12 +10,25 @@ from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView
 from chatapp import models
 from utils import generate_random_string
-
+from rest_framework.response import Response
 # Create your views here.
 
 class ChatRoomView(ListCreateAPIView):
     serializer_class = serializers.ChatRoomSerializer
     queryset = models.Room.objects
+    
+    def get(self, request, *args, **kwargs):
+        room_queryset = self.get_queryset()
+        room = self.list(request, queryset=room_queryset)
+        message_queryset = models.Message.objects.filter(room=room_queryset[0])\
+                                                 .order_by('date')\
+                                                 .values('user__username','date','value')
+        message = self.list(request, queryset=message_queryset,
+                            serializer=serializers.MessageSerializer)
+        return Response({'room': room.data,
+                         'messages': message.data
+                         })
+        
 
     def post(self, request, *args, **kwargs):
         # print(request.data)
@@ -31,7 +45,20 @@ class ChatRoomView(ListCreateAPIView):
         group = Group.objects.create(name=f"room_{serializer.validated_data['name']}")
         group.user_set.add(self.request.user)
         return serializer.save(creator=self.request.user, group=group)
+    
+    def list(self, request, *args, **kwargs):
+        # queryset = self.filter_queryset(self.get_queryset())
+        queryset = kwargs.pop('queryset') or None
+        serializer = kwargs.pop('serializer', self.serializer_class)
+        context = self.get_serializer_context()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer_data = serializer(page, many=True,context=context)
+            return self.get_paginated_response(serializer_data.data)
 
+        serializer_data = serializer(queryset, many=True,context=context)
+        return serializer_data.data
+    
 # @method_decorator(login_required(login_url='/account/'), name='dispatch')
 # class HomeView(ListView):
 #     model = models.Room
