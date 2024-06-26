@@ -1,0 +1,16 @@
+python-dotenv
+Django
+psycopg[binary,pool]
+pyjwt[crypto]
+djangorestframework
+django-extensions
+markdown
+django-filter
+djangorestframework_simplejwt
+djangorestframework-simplejwt[crypto]
+django-cors-headers
+channels[daphne]
+channels_redis
+django-cors-headers
+django-autoslug
+factory_boy
