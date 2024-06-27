@@ -1,6 +1,8 @@
 services:
   web:
-    image: be/django
+    image: "ptt9881/be_django:latest"
+    # command: ["executable", "arg"]
+    command: python manage.py runserver 0.0.0.0:8000
     stdin_open: true
     tty: true
     ports:
@@ -10,7 +12,7 @@ services:
     depends_on:
       - db
   db:
-    image: postgres:latest
+    image: "postgres:latest"
     restart: always
     ports:
       - "5432:5432"
@@ -22,7 +24,7 @@ services:
       - ./postgres_data:/var/lib/postgresql/data
 
   adminer:
-    image: adminer
+    image: "adminer:latest"
     restart: always
     ports:
       - 8080:8080

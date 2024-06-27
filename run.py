@@ -12,4 +12,5 @@ def main():
         print(process.stderr)
 
 if __name__ == "__main__":
-    main()  
+    # main()
+    print("Hello World")  

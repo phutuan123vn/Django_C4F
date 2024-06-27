@@ -1,3 +1,5 @@
-.vscode
-./API
+.vscode/
+./API/
 postgres_data/
+docker-compose.yaml
+test.sh
