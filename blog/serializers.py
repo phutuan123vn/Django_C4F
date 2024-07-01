@@ -7,10 +7,11 @@ from blog import models
 class BlogSerializer(serializers.ModelSerializer):
     # user_id = serializers.HyperlinkedRelatedField()
     blog = serializers.HyperlinkedIdentityField(view_name="blog:detail", lookup_field="slug")
+    username = serializers.ReadOnlyField(source="user_id.username")
     
     class Meta:
         model = models.Blog
-        fields = "__all__"
+        fields = ['id','username','title','description','level','videoID','slug','created_at','updated_at','likes','blog']
         read_only_fields = ['likes']
         
     def create(self, validated_data):

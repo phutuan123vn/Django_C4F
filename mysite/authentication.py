@@ -20,14 +20,15 @@ class CustomAuthentication(jwt_authentication.JWTAuthentication):
         # pprint(vars(request))
         header = self.get_header(request)
         if header is None:
-            return None
+            # return None
+            access_token = None
+            refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None 
         else:
             refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None 
             access_token = self.get_raw_token(header)
 
-        if access_token is None or access_token is None and refresh_token is None:
+        if access_token is None and refresh_token is None:
             return None
-        
         validated_token = self.get_validated_token(access_token,refresh_token)
         # validated_token = self.get_validated_token(access_token)
         # print("validated_token",validated_token)
@@ -43,10 +44,11 @@ class CustomAuthentication(jwt_authentication.JWTAuthentication):
         AuthToken = api_settings.AUTH_TOKEN_CLASSES
         message = ''
         if AuthToken[0].token_type == 'access':
-            try:
-                return AuthToken[0](token[0])
-            except jwt_authentication.TokenError as e:
-                pass
+            if access_token is not None:
+                try:
+                    return AuthToken[0](token[0])
+                except jwt_authentication.TokenError as e:
+                    pass
             if refresh_token is not None:
                 try:
                     return AuthToken[1](token[1])
@@ -54,10 +56,11 @@ class CustomAuthentication(jwt_authentication.JWTAuthentication):
                     pass
             message = "Token is invalid or expired"
         else:
-            try:
-                return AuthToken[1](token[0])
-            except jwt_authentication.TokenError as e:
-                pass
+            if access_token is not None:
+                try:
+                    return AuthToken[1](token[0])
+                except jwt_authentication.TokenError as e:
+                    pass
             if refresh_token is not None:
                 try:
                     return AuthToken[0](token[1])

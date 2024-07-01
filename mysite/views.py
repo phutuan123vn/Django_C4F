@@ -1,5 +1,5 @@
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view,permission_classes
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework import generics
@@ -26,12 +26,8 @@ class LoginView(APIView):
     permission_classes = (AllowAny,)
     serializer_class = LoginUserSerializer
     
-    def get(self, request: Request, format=None):
-        return Response({"message":"Login page"})
-    
     def post(self, request: Request, format=None):
         serializer = self.serializer_class(data=request.data)
-        # serializer.is_valid()
         if serializer.is_valid():
             user = serializer.validated_data
             if user:
@@ -64,15 +60,34 @@ class CreateUsersView(generics.ListCreateAPIView):
 
 class LoginUserView(APIView):
     authentication_classes = ([])
-    permission_classes = [AllowAny]
+    permission_classes = (AllowAny,)
     serializer_class = LoginUserSerializer
 
-    def post(self,request: Request):
-        serializer = LoginUserSerializer(data=request.data)
+    def post(self, request: Request, format=None):
+        serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
-            print(serializer.validated_data)
-            return Response(UserSerializer(User.objects.filter(username=serializer.validated_data).get()).data)
-        return Response(serializer.errors)
+            user = serializer.validated_data
+            if user and user.is_active:
+                data = get_tokens_for_user(user)
+                response = Response()
+                response.set_cookie(
+                    key = settings.SIMPLE_JWT['AUTH_COOKIE'],
+                    value = data["refresh"],
+                    expires = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
+                csrf.get_token(request)
+                response.data = {"Success" : "Login successfully","access_token":data['access'], "user": {
+                    'id': user.id,
+                    'username': user.username,
+                }}
+                return response
+            else:
+                return Response({"No active" : "This account is not active!!"}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({"Invalid" : "Invalid username or password!!"}, status=status.HTTP_404_NOT_FOUND)
 
 class LogoutUserView(APIView):
     def post(self,request: Request):
@@ -84,11 +99,6 @@ class LogoutUserView(APIView):
 
 @api_view(["GET","POST"])
 def testAPI(request: Request):
-    # access_token = ''
-    # if request._auth['token_type'] == 'refresh':
-    #     print(request.auth) 
-    #     refreshTokenClass = RefreshToken(str(request.auth))
-    #     access_token = str(refreshTokenClass.access_token)
-    return Response({"message":"Hello World",
-                        #  "access_token":access_token,
-                    })
+    # print(request.data)
+    # print(request.COOKIES)
+    return Response({"message":"Hello World"})

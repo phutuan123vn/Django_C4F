@@ -11,16 +11,28 @@ from blog import models, serializers
 from django.db.models import Prefetch
 
 
-class BlogList(generics.ListCreateAPIView):
+class BlogList(generics.ListAPIView):
     #### Comment Authenticateion and Permission for production
-    # authentication_classes = []
-    # permission_classes = [AllowAny,]
+    authentication_classes = []
+    permission_classes = [AllowAny,]
     ##################################
     queryset = models.Blog.objects.all().order_by("created_at")
     serializer_class = serializers.BlogSerializer
     
+    def get(self, request: Request) -> Response:
+        # pprint(vars(request))
+        # print(request.COOKIES)
+        return super().get(request)
+    
+class BlogCreate(generics.CreateAPIView,generics.UpdateAPIView):
+    queryset = models.Blog.objects.all().order_by("created_at")
+    serializer_class = serializers.BlogSerializer
+    
     def perform_create(self, serializer):
-        return serializer.save(user_id=self.request.user)
+        serializer.save(user_id=self.request.user)
+        
+    def perform_update(self, serializer):
+        serializer.save(user_id=self.request.user)
     
 class BlogDetail(generics.RetrieveAPIView):
     authentication_classes = []
@@ -48,8 +60,8 @@ class BlogCommentCreate(generics.CreateAPIView):
         
 class BlogDetailComment(generics.ListAPIView):
     #### Comment Authenticateion and Permission for production
-    # authentication_classes = []
-    # permission_classes = [AllowAny,]
+    authentication_classes = []
+    permission_classes = [AllowAny,]
     ##################################
     lookup_field = "slug"
     serializer_class = serializers.BlogCommentSerializer
@@ -73,10 +85,14 @@ class BlogDetailComment(generics.ListAPIView):
             return response
         like_user_queryset = blog.blog_like.all()
         blog = serializers.BlogSerializer(blog,context=self.get_serializer_context()).data
+        if request.user:
+            author = False
+        else:
+            author = blog['user_id'] == request.user.id
         response.data = {
             "blog": blog,
             "comments":comments.data,
-            "author": blog['user_id'] == request.user.id,
+            "author": author,
             "liked": like_user_queryset.filter(user_id=request.user.id).exists(),
             }
         return response

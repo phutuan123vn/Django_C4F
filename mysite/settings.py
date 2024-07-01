@@ -30,7 +30,7 @@ SECRET_KEY = "123w@2av*f!#q)8hff$dbk1k55_#0kwvj_j155g()!*wr62)dr8y*s"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     # 'rest_framework_simplejwt.token_blacklist',
-    'corsheaders',
+    "corsheaders",
     "mysite",
     'django_extensions',
     # "daphne",
@@ -93,15 +93,34 @@ WSGI_APPLICATION = "mysite.wsgi.application"
 
 ############### Add Appication Setting
 
-# CORS_ORIGIN_ALLOW_ALL = True
-
+CORS_ALLOW_CREDENTIALS = True
+# CORS_ALLOW_ALL_ORIGINS = True
+# CORS_EXPOSE_HEADERS = [
+#     'Set-Cookie'
+# ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://127.0.0.1:3000",
 ]
 
-CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = (
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+)
 
-CORS_EXPOSE_HEADERS = ['Content-Type']
+CORS_ALLOW_HEADERS = (
+    "accept",
+    "authorization",
+    "content-type",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "Content-Type",
+)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=1),
@@ -241,3 +260,12 @@ REST_FRAMEWORK = {
 ### CSRF Settings
 
 CSRF_COOKIE_HTTPONLY = True
+# CSRF_COOKIE_SECURE = True
+# CSRF_COOKIE_SAMESITE = 'Strict'
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:3000',
+    "http://127.0.0.1:3000",
+]
+
+# SESSION_COOKIE_SAMESITE = 'None'
+# SESSION_COOKIE_SECURE = True

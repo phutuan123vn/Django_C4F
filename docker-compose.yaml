@@ -1,3 +1,4 @@
+version: '0.1'
 services:
   web:
     image: "ptt9881/be_django:latest"

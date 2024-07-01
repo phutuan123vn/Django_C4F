@@ -24,14 +24,14 @@ import mysite.views as views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include([
-        path("users/", views.CreateUsersView.as_view()),
-        path("login/", views.LoginUserView.as_view()),
+        path("register/", views.CreateUsersView.as_view()),
+        # path("login/", views.LoginUserView.as_view()),
+        path("login/", views.LoginUserView.as_view(), name="api_login"),
+        path("logout/", views.LogoutUserView.as_view(), name="api_logout"),
+        path("test/", views.testAPI),
         path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
         path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
         path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
-        path("test/", views.testAPI),
-        path("test/login/", views.LoginView.as_view(), name="test_login"),
-        path("test/logout/", views.LogoutUserView.as_view(), name="test_logout")
     ])),
     path("api/blog/", include(("blog.urls","blog"), namespace="blog")),
     path("api/chat/", include(("chatapp.urls","chatapp"), namespace="chatapp")),
