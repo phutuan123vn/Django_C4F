@@ -7,7 +7,7 @@ from django.db.models import Q
 from django.utils import timezone
 from chatapp import serializers
 from rest_framework.views import APIView
-from rest_framework.generics import ListCreateAPIView
+from rest_framework.generics import ListCreateAPIView, ListAPIView
 from chatapp import models
 from utils import generate_random_string
 from rest_framework.response import Response
@@ -19,12 +19,18 @@ class ChatRoomView(ListCreateAPIView):
     
     def get(self, request, *args, **kwargs):
         room_queryset = self.get_queryset()
+        if not room_queryset:
+            return Response({'room': None, 'messages': None})
+
         room = self.list(request, queryset=room_queryset)
+
         message_queryset = models.Message.objects.filter(room=room_queryset[0])\
                                                  .order_by('date')\
                                                  .values('user__username','date','value')
+
         message = self.list(request, queryset=message_queryset,
                             serializer=serializers.MessageSerializer)
+
         return Response({'room': room.data,
                          'messages': message.data
                          })
@@ -48,17 +54,19 @@ class ChatRoomView(ListCreateAPIView):
     
     def list(self, request, *args, **kwargs):
         # queryset = self.filter_queryset(self.get_queryset())
-        queryset = kwargs.pop('queryset') or None
+        queryset = kwargs.pop('queryset')
         serializer = kwargs.pop('serializer', self.serializer_class)
         context = self.get_serializer_context()
-        page = self.paginate_queryset(queryset)
+
+        page = self.paginator.paginate_queryset(queryset, self.request, view=self)
         if page is not None:
             serializer_data = serializer(page, many=True,context=context)
             return self.get_paginated_response(serializer_data.data)
 
         serializer_data = serializer(queryset, many=True,context=context)
         return serializer_data.data
-    
+
+
 # @method_decorator(login_required(login_url='/account/'), name='dispatch')
 # class HomeView(ListView):
 #     model = models.Room
