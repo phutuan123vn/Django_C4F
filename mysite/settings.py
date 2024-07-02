@@ -184,6 +184,17 @@ CHANNEL_LAYERS = {
 }
 """
 
+ASGI_APPLICATION = "mysite.asgi.application"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [(str(os.getenv("REDIS_HOST","localhost")), 6379)],
+        },
+    },
+}
+
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 

@@ -9,28 +9,33 @@ https://docs.djangoproject.com/en/5.0/howto/deployment/asgi/
 
 import os
 ###### chat app
-# from channels.auth import AuthMiddlewareStack
-# from channels.routing import ProtocolTypeRouter, URLRouter
-# from channels.security.websocket import AllowedHostsOriginValidator
+from channels.auth import AuthMiddlewareStack
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.security.websocket import AllowedHostsOriginValidator
 ###########################################
 from django.core.asgi import get_asgi_application
+# import socketio
+
+# sio = socketio.AsyncServer(async_mode='asgi')
+# mgr = socketio.AsyncRedisManager("redis://localhost:6379/0")
+# app = socketio.ASGIApp(sio)
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "mysite.settings")
 # Initialize Django ASGI application early to ensure the AppRegistry
 # is populated before importing code that may import ORM models.
 ############ chat app
-# django_asgi_app = get_asgi_application()
+django_asgi_app = get_asgi_application()
 
-# # import chatapp.routing
+import chatapp.routing
 
-# application = ProtocolTypeRouter(
-#     {
-#         "http": django_asgi_app,
-#         "websocket": AllowedHostsOriginValidator(
-#             AuthMiddlewareStack(URLRouter(chatapp.routing.websocket_urlpatterns))
-#         ),
-#     }
-# )
+application = ProtocolTypeRouter(
+    {
+        "http": django_asgi_app,
+        "websocket": AllowedHostsOriginValidator(
+            AuthMiddlewareStack(URLRouter(chatapp.routing.websocket_urlpatterns))
+        ),
+    }
+)
 ########################
 
-application = get_asgi_application()
+# application = get_asgi_application()
