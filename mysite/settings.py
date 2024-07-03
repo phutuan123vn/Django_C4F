@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     "corsheaders",
     "mysite",
     'django_extensions',
-    # "daphne",
+    "daphne",
+    # 'channels',
     ### add the following third party above
     "django.contrib.admin",
     "django.contrib.auth",
@@ -190,7 +191,8 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": [(str(os.getenv("REDIS_HOST","localhost")), 6379)],
+            # "hosts": [(str(os.getenv("REDIS_HOST","localhost")), 6379)],
+            "hosts": [('127.0.0.1', 6379)],
         },
     },
 }
