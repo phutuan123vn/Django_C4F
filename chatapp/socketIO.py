@@ -1,5 +1,5 @@
 from pprint import pprint
-from socketio import AsyncServer, AsyncRedisManager
+from socketio import AsyncServer, AsyncRedisManager, AsyncNamespace
 from asgiref.sync import sync_to_async
 from mysite import settings
 
@@ -7,8 +7,8 @@ from mysite import settings
 mgr = AsyncRedisManager("redis://localhost:6379/0")
 SIO = AsyncServer(
     async_mode="asgi",
-    logger=True,
-    engineio_logger=True,
+    # logger=True,
+    # engineio_logger=True,
     client_manager=mgr,
     cors_allowed_origins=settings.CORS_ALLOWED_ORIGINS,
 )
@@ -17,18 +17,7 @@ SIO = AsyncServer(
 
 @SIO.on("connect")
 async def connect(sid, env, auth):
-    # chat_id = auth["chat_id"] 
-    pprint(env)
-    scope = env['asgi.scope']
-    pprint(scope)
-    session = scope.get("session", None)
-    session = dir(session) 
-    print(session)
-    pprint(session)
-    print("SocketIO connect" , sid, env, auth)
-    # SIO.enter_room(sid, 2)
-    # await SIO.emit("connect", f"Connected as {sid}") 
-    # await SIO.emit("message", f"Connected as {sid}")
+    print("SocketIO connect", sid)
 
 
 @SIO.on("disconnect")
@@ -38,15 +27,24 @@ async def disconnect(sid):
 
 @SIO.on("message")
 async def message(sid, data):
-    print("SocketIO message receive", data)
-    await SIO.emit("message", data + ' from server')
+    room = data.get("room")
+    message = data.get("message")
+    print("SocketIO message", message, room)
+    data = {
+        "message": message,
+        "room": room,
+        "user": SIO.get_environ(sid)['asgi.scope']['user'].username
+    }
+    await SIO.emit("message", data, room=room, skip_sid=sid)
     
     
 @SIO.on("join")
-async def join(sid, data):
-    print("SocketIO join", data)
-    await SIO.enter_room(sid, data)
-    await SIO.emit("message", f"Joined room {data}")
+async def join(sid, room):
+    print("SocketIO join", room)
+    user = SIO.get_environ(sid)['asgi.scope']['user']
+    print("User join", user, room)
+    await SIO.enter_room(sid, room)
+    await SIO.emit("message", f"Joined room {room} from server", room=room, skip_sid=sid)
     
 @SIO.on("leave")
 async def leave(sid,data):
