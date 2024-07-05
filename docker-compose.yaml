@@ -1,8 +1,8 @@
 version: '0.1'
 services:
   web:
-    image: "ptt9881/be_django:latest"
-    # command: ["executable", "arg"]
+    build: .
+    # image: "ptt9881/be_django:latest"
     command: python manage.py runserver 0.0.0.0:8000
     stdin_open: true
     tty: true
@@ -12,6 +12,7 @@ services:
     #   - .:/Django_C4F
     depends_on:
       - db
+      - redis
   db:
     image: "postgres:latest"
     restart: always

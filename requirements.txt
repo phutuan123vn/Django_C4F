@@ -11,6 +11,8 @@ djangorestframework-simplejwt[crypto]
 django-cors-headers
 channels[daphne]
 channels_redis
+redis
+aioredis
 django-cors-headers
 django-autoslug
 factory_boy

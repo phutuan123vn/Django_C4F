@@ -67,6 +67,71 @@ class ChatRoomView(ListCreateAPIView):
         return serializer_data.data
 
 
+class ChatMessageView(ListAPIView):
+    serializer_class = serializers.MessageSerializer
+    queryset = models.Message.objects
+    lookup_url_kwarg = 'room_id'
+    
+    def get_queryset(self):
+        room = models.Room.objects.get(pk=self.kwargs['room_id'])
+        queryset = self.queryset.filter(room=room).values('user__username','date','value').order_by('-date')
+        return queryset
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        context = self.get_serializer_context()
+
+        page = self.paginator.paginate_queryset(queryset, self.request, view=self)
+        if page is not None:
+            serializer_data = self.serializer_class(page, many=True,context=context)
+            return self.get_paginated_response(serializer_data.data)
+
+        serializer_data = self.serializer_class(queryset, many=True,context=context)
+        return Response({'data': serializer_data.data})
+    
+    # def perform_create(self, serializer):
+    #     serializer.save(room=models.Room.objects.get(pk=self.kwargs['room_id']), user=self.request.user)
+        # return super().perform_create(serializer)
+        
+        
+class ChatCodeView(APIView):
+    serializer_class = serializers.CodeSerializer
+    lookup_url_kwarg = 'room_id'
+    
+    def generate_code(self):
+        code = generate_random_string()
+        unique = models.Code.objects.filter(code__iexact=code).exists()
+        while unique:
+            code = generate_random_string()
+            unique = models.Code.objects.filter(code__iexact=code).exists()
+        return code
+    
+    def get(self, request, *args, **kwargs):
+        room_id = self.kwargs['room_id']
+        # room = models.Room.objects.get(pk=room_id)
+        code = models.Code.objects.filter(room__id=room_id)
+        if code.exists():
+            code_exist = code.first().expires - timezone.now() <= datetime.timedelta(minutes=25)
+            if not code_exist:
+                return Response({'status': 'error', 'message': 'Code already exists or Wait for 5 minutes to generate new code'})
+            models.Code.objects.filter(room__id=room_id).delete()
+        code = self.generate_code()
+        serializer = self.serializer_class(data={'code': code, 'room': room_id, 'expires': timezone.now() + datetime.timedelta(minutes=30)})
+        # self.serializer_class(data={'code': code, 'room': room, 'expires': timezone.now() + datetime.timedelta(minutes=30)})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'status': 'success', 'code': code}) 
+        
+    def post(self, request, *args, **kwargs):
+        code = models.Code.objects.filter(code__iexact=request.data['code'], expires__gte=timezone.now())
+        if code.exists():
+            room = code.first().room
+            if request.user in room.group.user_set.all():
+                return Response({'status': 'error', 'message': 'Already in the room'})
+            room.group.user_set.add(request.user)
+            return Response({'status': 'success', 'room_id': room.id})
+        return Response({'status': 'error', 'message': 'Code not found'})
+    
 # @method_decorator(login_required(login_url='/account/'), name='dispatch')
 # class HomeView(ListView):
 #     model = models.Room
