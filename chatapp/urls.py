@@ -12,6 +12,7 @@ import chatapp.views as views
 
 urlpatterns = [
     path('',views.ChatRoomView.as_view(),name='room'),
+    path('code/',views.ChatCodeView.as_view(),name='code'),
     path('code/<int:room_id>/',views.ChatCodeView.as_view(),name='code'),
     path('<int:room_id>/',views.ChatMessageView.as_view(),name='room'),
 ]

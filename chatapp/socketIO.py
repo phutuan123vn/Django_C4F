@@ -3,7 +3,10 @@ from socketio import AsyncServer, AsyncRedisManager, AsyncNamespace
 from asgiref.sync import sync_to_async
 from mysite import settings
 from chatapp.models import Message
+from dotenv import load_dotenv
 import os
+
+load_dotenv()
 
 url = "redis://"+ os.getenv("REDIS","localhost") + ":6379"
 mgr = AsyncRedisManager(url)
